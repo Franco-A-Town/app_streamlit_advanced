@@ -2,15 +2,9 @@ import streamlit
 import pandas as pd
 import re
 
-banners= [
-    'Banner_1',
-    'Banner_2',
-    'Banner_3',
-    'Banner_4']
 
-
-'''
 banners= [
+    'All banners',
     'AT - Pearle',
     'BE - Pearle',
     'BG - Vision Express',
@@ -47,7 +41,7 @@ banners= [
     'IT - Salmoiraghi & Viganò',
     'UK - David Clulow'
     ]
-'''
+
 
 
 dict_header = {
@@ -73,8 +67,7 @@ dict_header = {
 }
 
 
-import os
-import toml
+
 from google.cloud import bigquery
 from google.oauth2 import service_account  # Importamos service_account para usar credenciales directamente
 import streamlit as st
@@ -89,8 +82,10 @@ client = bigquery.Client(credentials=credentials)
 
 project_id = "circular-cubist-455115-m2"
 dataset_id = "app_source_data"
-table_id = "app_source_data"
-table_ref = f"{project_id}.{dataset_id}.{table_id}"
+source_data_table_id = "app_source_data"
+source_data_table_ref = f"{project_id}.{dataset_id}.{source_data_table_id}"
+is_editing_table_id = "is_editing"
+is_editing_table_ref = f"{project_id}.{dataset_id}.{is_editing_table_id}"
 
 
 def create_register(
@@ -148,7 +143,7 @@ def create_register(
     previous_ids = set(previous_ids)
 
     if id not in previous_ids:
-        errors = client.insert_rows_json(table_ref, rows_to_insert)
+        errors = client.insert_rows_json(source_data_table_ref, rows_to_insert)
         if errors:
             st.error("Error trying to insert register:", errors)
         else:
@@ -158,43 +153,42 @@ def create_register(
 
 
 def bq_to_df():
-    # Construye la consulta SQL
-    query = f"""
-        SELECT *
-        FROM `{table_ref}`
-        ORDER BY banner ASC, year ASC, week ASC
-    """
+    # Obtener la tabla de BigQuery
+    table = client.get_table(source_data_table_ref)  # Obtener la referencia de la tabla
+    rows = client.list_rows(table)  # Listar todas las filas de la tabla
+    df = rows.to_dataframe()  # Convertir las filas a un DataFrame de pandas
 
-    # Ejecuta la consulta y convierte los resultados a DataFrame
-    df = client.query(query).to_dataframe()
-
+    # Seleccionar y renombrar columnas según el diccionario dict_header
     df = df[
         [
-        "id",
-        "year",
-        "week",
-        "banner",
-        "traffic",
-        "transactions",
-        "appointments",
-        "revenue",
-        "total_return_values",
-        "cl_revenue",
-        "cl_return_values",
-        "cl_units",
-        "opt_revenue",
-        "opt_return_values",
-        "opt_units",
-        "sun_revenue",
-        "sun_return_values",
-        "sun_units",
-        "insights_on_performance",
-        "insights_on_blockers"
+            "id",
+            "year",
+            "week",
+            "banner",
+            "traffic",
+            "transactions",
+            "appointments",
+            "revenue",
+            "total_return_values",
+            "cl_revenue",
+            "cl_return_values",
+            "cl_units",
+            "opt_revenue",
+            "opt_return_values",
+            "opt_units",
+            "sun_revenue",
+            "sun_return_values",
+            "sun_units",
+            "insights_on_performance",
+            "insights_on_blockers",
         ]
     ]
 
     df.rename(columns=dict_header, inplace=True)
-    
+
+    # Ordenar las filas de forma ascendente según banner, year y week
+    df.sort_values(by=["Banner", "Year", "Week"], ascending=True, inplace=True)
+
     return df
 
 
@@ -217,15 +211,148 @@ def filter_df(df: pd.DataFrame,
     return result
 
 
-def is_integer_number(value: str) -> bool:
-    result = bool(re.match(r"^-?\d+$", value))
-    if result:
-        st.write('Es entero')
-    else:
-        st.write('No es entero')
-    return result
+def df_to_bq(df: pd.DataFrame):
+
+    df = df.loc[:, df.columns != "Active"]
+    df = df.rename(
+        columns={
+            "id": "id",
+            "Year": "year",
+            "Week": "week",
+            "Banner": "banner",
+            "Traffic": "traffic",
+            "Transactions": "transactions",
+            "Total revenue": "revenue",
+            "Insights on performance": "insights_on_performance",
+            "Insights on blockers": "insights_on_blockers",
+            "Sun revenues": "sun_revenue",
+            "Sun units": "sun_units",
+            "CL revenues": "cl_revenue",
+            "CL units": "cl_units",
+            "OPT revenues": "opt_revenue",
+            "OPt units": "opt_units",
+            "Return values": "total_return_values",
+            "CL return_values": "cl_return_values",
+            "OPT return values": "opt_return_values",
+            "SUN return values": "sun_return_values",
+            "Appointments": "appointments"
+            }
+    )
 
 
-def is_rational_number(value: str) -> bool:
-    reg_exp = r"^-?\d+\.\d+$|^-?\d+$"
-    return bool(re.match(reg_exp, value))
+    # Referencia a la tabla
+    source_data_table_ref = f"{project_id}.{dataset_id}.{source_data_table_id}"
+
+    # Borrar la tabla existente
+    try:
+        client.delete_table(source_data_table_ref)  # Elimina la tabla
+        st.success(f"Table {source_data_table_ref} succesfully deleted")
+    except Exception as e:
+        st.error(f"Error deleting table: {e}")
+        return
+
+    # Crear un esquema basado en las columnas del DataFrame
+    schema = [
+        bigquery.SchemaField(column, str(df[column].dtype).replace("object", "STRING").replace("int64", "INTEGER").replace("float64", "FLOAT"))
+        for column in df.columns
+    ]
+
+    # Crear una nueva tabla con el esquema
+    table = bigquery.Table(source_data_table_ref, schema=schema)
+    try:
+        client.create_table(table)  # Crea la tabla vacía
+        st.success(f"Table {source_data_table_ref} succesfully created")
+    except Exception as e:
+        st.error(f"Error when creating table: {e}")
+        return
+
+    # Cargar los datos del DataFrame en la tabla
+    try:
+        job = client.load_table_from_dataframe(df, source_data_table_ref)  # Carga el DataFrame en la tabla
+        job.result()  # Espera a que el trabajo termine
+        st.success(f"Data succesfully uploaded to table {source_data_table_ref}.")
+    except Exception as e:
+        st.error(f"Error when uploading data to table: {e}")
+
+def active_dfa():
+    return st.session_state["dfa"][st.session_state["dfa"]["Active"] == True].copy()
+
+
+def get_index(row):
+    return active_dfa().iloc[row].name
+
+
+def commit():
+    for row in st.session_state.editor["edited_rows"]:
+        row_index = get_index(row)
+        for key, value in st.session_state.editor["edited_rows"][row].items():
+            st.session_state["dfa"].at[row_index, key] = value
+
+
+def get_is_editing():
+    query = f"""
+        SELECT is_editing
+        FROM `{is_editing_table_ref}`
+        LIMIT 1
+    """
+
+    try:
+        # Ejecutar la consulta
+        query_job = client.query(query)
+
+        # Esperar el resultado
+        results = query_job.result()
+
+        # Obtener el valor de la primera fila
+        for row in results:
+            return row.is_editing  # Retorna el valor booleano de la columna 'is_editing'
+
+    except Exception as e:
+        return None
+
+def update_is_editing(new_value: bool):
+    # Consulta para actualizar el primer registro
+    query = f"""
+    UPDATE `{is_editing_table_ref}`
+    SET is_editing = @new_value
+    WHERE TRUE  -- Esto asegura que se actualice aunque no haya condiciones específicas
+    """
+    # Configuramos los parámetros de la consulta
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[bigquery.ScalarQueryParameter("new_value", "BOOL", new_value)]
+    )
+    
+    try:
+        # Ejecutar la consulta
+        client.query(query, job_config=job_config).result()
+        print(f"")
+    except Exception as e:
+        print(f"Error updating: {e}")
+
+'''
+# Create the table in BigQuery
+# This code is only needed once to create the table
+
+CREATE OR REPLACE TABLE `circular-cubist-455115-m2.app_source_data.app_source_data` (
+  id STRING,
+  year INT64,
+  week INT64,
+  banner STRING,
+  traffic INT64,
+  transactions INT64,
+  revenue FLOAT64,
+  insights_on_performance STRING,
+  insights_on_blockers STRING,
+  sun_revenue FLOAT64,
+  sun_units INT64,
+  cl_revenue FLOAT64,
+  cl_units INT64,
+  opt_revenue FLOAT64,
+  opt_units INT64,
+  total_return_values FLOAT64,
+  cl_return_values FLOAT64,
+  opt_return_values FLOAT64,
+  sun_return_values FLOAT64,
+  appointments INT64
+);
+'''

@@ -3,16 +3,14 @@ import pandas as pd
 from elements import banners, create_register, bq_to_df, filter_df
 import time
 
+if "df" not in st.session_state:
+    st.session_state.df = bq_to_df()
 
 def input():
 
-    if st.button("Logout"):
-        st.logout()
-        st.session_state.login = False
+    if 'is_df_filtered' not in st.session_state:
+        st.session_state.is_df_filtered = False
 
-    df = bq_to_df()
-
-    st.title("Source Data App")
     st.header("Create and visualize performance data registers")
 
     # Usamos session_state para controlar el flujo
@@ -31,10 +29,10 @@ def input():
             with col_1:
                 year = st.selectbox("Select year", [2023, 2024, 2025], index=2)
                 week = st.number_input("Number of week", min_value=1, max_value=52)
-                banner = st.selectbox("Select banner", banners)
+                banner = st.selectbox("Select banner", [banner for banner in banners if banner != "All banners"])
             
             with col_2:
-                traffic = st.number_input("Traffic")
+                traffic = st.number_input("Traffic", min_value=0)
                 transactions = st.number_input("Transactions", min_value=0)
                 appointments = st.number_input("Appointments", min_value=0)
                 total_revenue = st.number_input("Total revenues", min_value=0.0)
@@ -140,7 +138,7 @@ def input():
                 year = st.session_state.form_data['year']
                 week = st.session_state.form_data['week']
     
-                if f"{banner.replace(' ','')}-{year}-{week}" in set(df['id']):
+                if f"{banner.replace(' ','')}-{year}-{week}" in set(st.session_state.df['id']):
                     st.error("The register for the Banner, Year and Week entered already exists")
                     time.sleep(3)
                     st.session_state.show_confirmation = False
@@ -149,13 +147,13 @@ def input():
                 else:
                     # Subir los datos
                     create_register(**st.session_state.form_data)
-                    df = bq_to_df()
+                    st.session_state.df= bq_to_df()
                     st.session_state.show_confirmation = False
                     st.session_state.form_data = None
                     st.rerun()
 
     # Formulario de filtrado
-    with st.form("filter", clear_on_submit=True):
+    with st.form("filter_input", clear_on_submit=True):
         col_1, col_2, col_3 = st.columns(3)
 
         with col_1:
@@ -164,12 +162,20 @@ def input():
             week = st.slider("Range of weeks", min_value=1, max_value=52, value=(1, 52))
         with col_3:
             banner = st.multiselect("Select banner", banners)
+            if 'All banners' in banner:
+                banner = banners
 
         filter = st.form_submit_button(label="Filter")
         if filter:
-            df = filter_df(df=df, filter_year=year, filter_week=week, filter_banner=banner)
+            df_filtered = filter_df(df= st.session_state.df, filter_year=year, filter_week=week, filter_banner=banner)
+            st.session_state.is_df_filtered = True
     
-    st.write(df)
+    if st.session_state.is_df_filtered:
+        st.write(df_filtered)
+    else:
+        st.write(st.session_state.df)
+
+
 
 if __name__ == "__input__":
     input()
