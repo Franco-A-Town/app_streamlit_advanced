@@ -143,20 +143,28 @@ def input():
                     st.rerun()
         
             if confirm_input:
-                banner = st.session_state.form_data['banner']
-                year = st.session_state.form_data['year']
-                week = st.session_state.form_data['week']
-    
-                if f"{banner.replace(' ','')}-{year}-{week}" in set(st.session_state.df['id']):
-                    st.error("The register for the Banner, Year and Week entered already exists")
-                    time.sleep(3)
-                    st.session_state.show_confirmation = False
-                    st.session_state.clear_on_submit = False
-                    st.rerun()
+                st.session_state.is_editing = get_is_editing()
+                if st.session_state.is_editing== False:
+                    banner = st.session_state.form_data['banner']
+                    year = st.session_state.form_data['year']
+                    week = st.session_state.form_data['week']
+
+                    if f"{banner.replace(' ','')}-{year}-{week}" in set(st.session_state.df['id']):
+                        st.error("The register for the Banner, Year and Week entered already exists")
+                        time.sleep(3)
+                        st.session_state.show_confirmation = False
+                        st.session_state.clear_on_submit = False
+                        st.rerun()
+                    else:
+                        # Subir los datos
+                        create_register(**st.session_state.form_data)
+                        st.session_state.df= bq_to_df()
+                        st.session_state.show_confirmation = False
+                        st.session_state.form_data = None
+                        st.rerun()
                 else:
-                    # Subir los datos
-                    create_register(**st.session_state.form_data)
-                    st.session_state.df= bq_to_df()
+                    st.warning("The data can not be upload because they are being edited")
+                    time.sleep(3)
                     st.session_state.show_confirmation = False
                     st.session_state.form_data = None
                     st.rerun()
