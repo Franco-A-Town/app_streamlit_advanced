@@ -27,9 +27,10 @@ def input():
             col_1, col_2, col_3, col_4, col_5, col_6 = st.columns([2,2,2,2,2,3])
 
             with col_1:
-                year = st.selectbox("Select year", [2023, 2024, 2025], index=2)
-                week = st.number_input("Number of week", min_value=1, max_value=52)
+                year = 2025
                 banner = st.selectbox("Select banner", [banner for banner in banners if banner != "All banners"])
+                week = st.number_input("Number of week", min_value=1, max_value=52)
+
             
             with col_2:
                 traffic = st.number_input("Traffic", min_value=0)
@@ -60,30 +61,37 @@ def input():
             submitted = st.form_submit_button("Upload to BQ")
 
             if submitted:
+                if not st.session_state.is_editing:
                 # Guardar los datos en session_state
-                st.session_state.form_data = {
-                    'year': year,
-                    'week': week,
-                    'banner': banner,
-                    'traffic': traffic,
-                    'transactions': transactions,
-                    'revenue': total_revenue,
-                    'insights_on_performance': insights_on_performance,
-                    'insights_on_blockers': insights_on_blockers,
-                    'sun_revenue': sun_revenues,
-                    'sun_units': sun_units,
-                    'cl_revenue': cl_revenues,
-                    'cl_units': cl_units,
-                    'opt_revenue': opt_revenues,
-                    'opt_units': opt_units,
-                    'total_return_values': total_return_values,
-                    'cl_return_values': cl_return_values,
-                    'opt_return_values': opt_return_values,
-                    'sun_return_values': sun_return_values,
-                    'appointments': appointments
-                }
-                st.session_state.show_confirmation = True
-                st.rerun()
+                    st.session_state.form_data = {
+                        'year': year,
+                        'week': week,
+                        'banner': banner,
+                        'traffic': traffic,
+                        'transactions': transactions,
+                        'revenue': total_revenue,
+                        'insights_on_performance': insights_on_performance,
+                        'insights_on_blockers': insights_on_blockers,
+                        'sun_revenue': sun_revenues,
+                        'sun_units': sun_units,
+                        'cl_revenue': cl_revenues,
+                        'cl_units': cl_units,
+                        'opt_revenue': opt_revenues,
+                        'opt_units': opt_units,
+                        'total_return_values': total_return_values,
+                        'cl_return_values': cl_return_values,
+                        'opt_return_values': opt_return_values,
+                        'sun_return_values': sun_return_values,
+                        'appointments': appointments
+                    }
+                    st.session_state.show_confirmation = True
+                    st.rerun()
+                else:
+                    st.warning("The data can not be upload because they are being edited")
+                    time.sleep(3)
+                    st.session_state.show_confirmation = False
+                    st.session_state.form_data = None
+                    st.rerun()
 
     # Pantalla de confirmación
     if st.session_state.show_confirmation and st.session_state.form_data:
@@ -125,7 +133,7 @@ def input():
             
             col1, col2, col3 = st.columns([1,1,4])
             with col1:
-                confirm = st.button("✅ Upload")
+                confirm_input = st.button("✅ Upload")
             
             with col2:
                 if st.button("❌ Cancel and Edit"):
@@ -133,7 +141,7 @@ def input():
                     st.session_state.clear_on_submit = False
                     st.rerun()
         
-            if confirm:
+            if confirm_input:
                 banner = st.session_state.form_data['banner']
                 year = st.session_state.form_data['year']
                 week = st.session_state.form_data['week']
