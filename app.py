@@ -3,6 +3,7 @@ from PIL import Image
 from elements import bq_to_df, get_is_editing, update_is_editing
 from input import input
 from edit import edit
+import time
 
 if "is_editing" not in st.session_state:
     st.session_state.is_editing = get_is_editing()
@@ -41,10 +42,14 @@ else:
         else:
             st.warning("The data are being edited. Please wait until " \
             "the edition is finished before uploading new data")
+            time.sleep(3)
+            st.rerun()
     elif menu == "Edit":
         st.session_state.is_editing = get_is_editing()
         if st.session_state.is_editing==False:
-            st.info("Press the button below to edit the data. The input of new registers will be disabled")
+            st.info("Press the button below to edit the data. " \
+            "The input of new registers will be disabled")
+
             if st.button("Edit Data"):
                 update_is_editing(True)
                 st.session_state.is_editing = get_is_editing()
