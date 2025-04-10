@@ -2,7 +2,16 @@ import streamlit
 import pandas as pd
 import re
 
+banners= [
+    'All banners',
+    'Banner - 1',
+    'Banner - 2',
+    'Banner - 3',
+    'Banner - 4',
+    'Banner - 5']
 
+
+'''
 banners= [
     'All banners',
     'AT - Pearle',
@@ -41,7 +50,7 @@ banners= [
     'IT - Salmoiraghi & Viganò',
     'UK - David Clulow'
     ]
-
+'''
 
 
 dict_header = {
