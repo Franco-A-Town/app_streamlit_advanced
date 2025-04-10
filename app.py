@@ -35,12 +35,14 @@ else:
     st.sidebar.title("Menu")
     menu = st.sidebar.radio("Select an option", ("Input", "Edit"))
     if menu == "Input":
+        st.session_state.is_editing = get_is_editing()
         if st.session_state.is_editing==False:
             input()
         else:
             st.warning("The data are being edited. Please wait until " \
             "the edition is finished before uploading new data")
     elif menu == "Edit":
+        st.session_state.is_editing = get_is_editing()
         if st.session_state.is_editing==False:
             st.info("Press the button below to edit the data. The input of new registers will be disabled")
             if st.button("Edit Data"):

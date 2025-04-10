@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from elements import banners, create_register, bq_to_df, filter_df
+from elements import banners, create_register, bq_to_df, filter_df, get_is_editing
 import time
 
 if "df" not in st.session_state:
@@ -61,6 +61,7 @@ def input():
             submitted = st.form_submit_button("Upload to BQ")
 
             if submitted:
+                st.session_state.is_editing = get_is_editing()
                 if not st.session_state.is_editing:
                 # Guardar los datos en session_state
                     st.session_state.form_data = {
