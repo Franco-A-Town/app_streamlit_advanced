@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from elements import banners, create_register, bq_to_df, filter_df, get_is_editing
+from elements import banners, create_register, bq_to_df, filter_df, get_is_editing, default_form_values
 import time
 
 if "df" not in st.session_state:
@@ -15,47 +15,67 @@ def input():
     if 'show_confirmation' not in st.session_state:
         st.session_state.show_confirmation = False
     if 'form_data' not in st.session_state:
-        st.session_state.form_data = None
+        st.session_state.form_data = default_form_values
     if 'clear_on_submit' not in st.session_state:
         st.session_state.clear_on_submit = False
 
     # Formulario principal
-    if st.session_state.show_confirmation== False and st.session_state.form_data== None and st.session_state.is_editing== False:
+    if st.session_state.show_confirmation== False and st.session_state.is_editing== False:
         st.subheader("Create and upload new performance data registers")
         with st.form("create", clear_on_submit=st.session_state.clear_on_submit):
             col_1, col_2, col_3, col_4, col_5, col_6 = st.columns([2,2,2,2,2,3])
 
             with col_1:
-                year = 2025
-                banner = st.selectbox("Select banner", [banner for banner in banners if banner != "All banners"])
-                week = st.number_input("Number of week", min_value=1, max_value=52)
+                year = st.session_state.form_data['year']
+                banner_input = [banner for banner in banners if banner != "All banners"]
+                banner = st.selectbox("Select banner", 
+                                      banner_input, 
+                                      index=banner_input.index(st.session_state.form_data['banner']))
+                week = st.number_input("Number of week", min_value=1, max_value=52,
+                                       value=st.session_state.form_data['week'])
 
             
             with col_2:
-                traffic = st.number_input("Traffic", min_value=0)
-                transactions = st.number_input("Transactions", min_value=0)
-                appointments = st.number_input("Appointments", min_value=0)
-                total_revenue = st.number_input("Total revenues", min_value=0.0)
-                total_return_values = st.number_input("Total return value", min_value=0.0)
+                traffic = st.number_input("Traffic", min_value=0, 
+                                          value=st.session_state.form_data['traffic'])
+                transactions = st.number_input("Transactions", min_value=0,
+                                               value=st.session_state.form_data['transactions'])
+                appointments = st.number_input("Appointments", min_value=0, 
+                                               value=st.session_state.form_data['appointments'])
+                total_revenue = st.number_input("Total revenues", min_value=0.0,
+                                                value=st.session_state.form_data['revenue'])
+                total_return_values = st.number_input("Total return value", min_value=0.0,
+                                                      value=st.session_state.form_data['total_return_values'])
 
             with col_3:
-                cl_revenues = st.number_input("Contact lenses revenues", min_value=0.0)
-                cl_return_values = st.number_input("Contact lenses return values", min_value=0.0)
-                cl_units = st.number_input("Contact lenses units", min_value=0)
+                cl_revenues = st.number_input("Contact lenses revenues", min_value=0.0,
+                                              value=st.session_state.form_data['cl_revenue'])
+                cl_return_values = st.number_input("Contact lenses return values", min_value=0.0,
+                                                   value=st.session_state.form_data['cl_return_values'])
+                cl_units = st.number_input("Contact lenses units", min_value=0,
+                                           value=st.session_state.form_data['cl_units'])
 
             with col_4:
-                opt_revenues = st.number_input("Optical revenues", min_value=0.0)
-                opt_return_values = st.number_input("Optical return values", min_value=0.0)
-                opt_units = st.number_input("Optical units", min_value=0)
+                opt_revenues = st.number_input("Optical revenues", min_value=0.0,
+                                               value=st.session_state.form_data['opt_revenue'])
+                opt_return_values = st.number_input("Optical return values", min_value=0.0,
+                                                    value=st.session_state.form_data['opt_return_values'])
+                opt_units = st.number_input("Optical units", min_value=0,
+                                            value=st.session_state.form_data['opt_units'])
 
             with col_5:
-                sun_revenues = st.number_input("Sun glasses revenues", min_value=0.0)
-                sun_return_values = st.number_input("Sun glasses return values", min_value=0.0)
-                sun_units = st.number_input("Sun glasses units", min_value=0)
+                sun_revenues = st.number_input("Sun glasses revenues", min_value=0.0,
+                                               value=st.session_state.form_data['sun_revenue'])
+                sun_return_values = st.number_input("Sun glasses return values", min_value=0.0,
+                                                    value=st.session_state.form_data['sun_return_values'])
+                sun_units = st.number_input("Sun glasses units", min_value=0,
+                                            value=st.session_state.form_data['sun_units'])
 
             with col_6:
-                insights_on_performance = st.text_area("Insights on performance")
-                insights_on_blockers = st.text_area("Insights on blockers")
+                insights_on_performance = st.text_area("Insights on performance",
+                                                       value=st.session_state.form_data['insights_on_performance'])
+                insights_on_blockers = st.text_area("Insights on blockers",
+                                                    value=st.session_state.form_data['insights_on_blockers'])
 
             submitted = st.form_submit_button("Upload to BQ")
 
@@ -63,6 +83,7 @@ def input():
                 st.session_state.is_editing = get_is_editing()
                 if st.session_state.is_editing== False:
                 # Guardar los datos en session_state
+                    #if "form_data" not in st.session_state: 
                     st.session_state.form_data = {
                         'year': year,
                         'week': week,
@@ -136,7 +157,7 @@ def input():
                 confirm_input = st.button("✅ Upload")
             
             with col2:
-                if st.button("❌ Cancel and Edit"):
+                if st.button("❌ Cancel"):
                     st.session_state.show_confirmation = False
                     st.session_state.clear_on_submit = False
                     st.rerun()
@@ -159,7 +180,7 @@ def input():
                         create_register(**st.session_state.form_data)
                         st.session_state.df= bq_to_df()
                         st.session_state.show_confirmation = False
-                        st.session_state.form_data = None
+                        st.session_state.form_data = default_form_values
                         st.rerun()
                 else:
                     st.warning("The data can not be upload because they are being edited")

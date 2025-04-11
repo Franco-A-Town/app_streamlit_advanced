@@ -75,6 +75,27 @@ dict_header = {
     "appointments" : "Appointments"
 }
 
+default_form_values = {
+                        'year': 2025,
+                        'week': 1,
+                        'banner': banners[1],
+                        'traffic': 0,
+                        'transactions': 0,
+                        'revenue': 0.00,
+                        'insights_on_performance': "",
+                        'insights_on_blockers': "",
+                        'sun_revenue': 0.00,
+                        'sun_units': 0,
+                        'cl_revenue': 0.00,
+                        'cl_units': 0,
+                        'opt_revenue': 0.00,
+                        'opt_units': 0,
+                        'total_return_values': 0.00,
+                        'cl_return_values': 0.00,
+                        'opt_return_values': 0.00,
+                        'sun_return_values': 0.00,
+                        'appointments': 0
+                    }
 
 
 from google.cloud import bigquery

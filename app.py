@@ -11,6 +11,10 @@ if "is_editing" not in st.session_state:
 if "df" not in st.session_state:
     st.session_state.df = bq_to_df()
 
+if "editor_user" not in st.session_state:
+    st.session_state.editor_user = {"franco.dauro@analyticstown.com" , 
+                                    "rocio.ilarri@analyticstown.com"}
+
 icon = Image.open("icon.jpeg")
 
 st.set_page_config(
@@ -29,6 +33,10 @@ if not st.experimental_user.is_logged_in:
 
 else:
     st.subheader(f"Welcome {st.experimental_user.email}")
+    if st.experimental_user.email in st.session_state.editor_user:
+        st.info("Role: Editor")
+    else:
+        st.info("Role: Data entry")
 
     if st.button("Logout"):
        st.logout()
@@ -36,6 +44,7 @@ else:
 
     st.sidebar.title("Menu")
     menu = st.sidebar.radio("Select an option", ("Input", "Edit"))
+    
     if menu == "Input":
         st.session_state.is_editing = get_is_editing()
         if st.session_state.is_editing==False:
@@ -46,15 +55,19 @@ else:
             input()
             #time.sleep(3)
             #st.rerun()
+    
     elif menu == "Edit":
-        st.session_state.is_editing = get_is_editing()
-        if st.session_state.is_editing==False:
-            st.warning("Press the button below to edit the data. " \
-            "The upload of **new registers** will be **disabled** during the edition process")
+        if st.experimental_user.email in st.session_state.editor_user:
+            st.session_state.is_editing = get_is_editing()
+            if st.session_state.is_editing==False:
+                st.warning("Press the button below to edit the data. " \
+                "The upload of **new registers** will be **disabled** during the edition process")
 
-            if st.button("Edit Data"):
-                update_is_editing(True)
-                st.session_state.is_editing = get_is_editing()
-                st.rerun()
+                if st.button("Edit Data"):
+                    update_is_editing(True)
+                    st.session_state.is_editing = get_is_editing()
+                    st.rerun()
+            else:
+                edit()
         else:
-            edit()
+            st.error("**Editor role** is needed. Please contact the administrator.")
