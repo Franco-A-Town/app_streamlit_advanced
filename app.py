@@ -13,7 +13,9 @@ if "df" not in st.session_state:
 
 if "editor_user" not in st.session_state:
     st.session_state.editor_user = {"franco.dauro@analyticstown.com" , 
-                                    "rocio.ilarri@analyticstown.com"}
+                                    "rocio.ilarri@analyticstown.com",
+                                    "irene.grillo@luxottica.com",
+                                    "diego.quirch@grandvision.com"}
 
 icon = Image.open("icon.jpeg")
 
