@@ -23,7 +23,7 @@ st.set_page_config(
     page_title="Source Data App",
     page_icon=icon,
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 st.title("Source Data App")
