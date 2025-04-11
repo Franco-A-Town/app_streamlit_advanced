@@ -11,8 +11,6 @@ def input():
     if 'is_df_filtered' not in st.session_state:
         st.session_state.is_df_filtered = False
 
-    st.header("Create and visualize performance data registers")
-
     # Usamos session_state para controlar el flujo
     if 'show_confirmation' not in st.session_state:
         st.session_state.show_confirmation = False
@@ -22,7 +20,8 @@ def input():
         st.session_state.clear_on_submit = False
 
     # Formulario principal
-    if not st.session_state.show_confirmation:
+    if st.session_state.show_confirmation== False and st.session_state.form_data== None and st.session_state.is_editing== False:
+        st.subheader("Create and upload new performance data registers")
         with st.form("create", clear_on_submit=st.session_state.clear_on_submit):
             col_1, col_2, col_3, col_4, col_5, col_6 = st.columns([2,2,2,2,2,3])
 
@@ -62,7 +61,7 @@ def input():
 
             if submitted:
                 st.session_state.is_editing = get_is_editing()
-                if not st.session_state.is_editing:
+                if st.session_state.is_editing== False:
                 # Guardar los datos en session_state
                     st.session_state.form_data = {
                         'year': year,
@@ -89,9 +88,9 @@ def input():
                     st.rerun()
                 else:
                     st.warning("The data can not be upload because they are being edited")
-                    time.sleep(3)
                     st.session_state.show_confirmation = False
                     st.session_state.form_data = None
+                    time.sleep(3)
                     st.rerun()
 
     # Pantalla de confirmación
@@ -171,6 +170,7 @@ def input():
 
     # Formulario de filtrado
     with st.form("filter_input", clear_on_submit=True):
+        st.subheader("Visualize updated performance data registers")
         col_1, col_2, col_3 = st.columns(3)
 
         with col_1:

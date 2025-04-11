@@ -9,7 +9,7 @@ def edit():
     if "dfa" not in st.session_state:
         st.session_state["dfa"] = bq_to_df()
 
-    st.header("Filter and edit data")
+    st.subheader("Filter and edit data")
 
     # Crear campos de entrada para filtrar por Banner, Week y Year
     col_1, col_2, col_3 = st.columns(3)
