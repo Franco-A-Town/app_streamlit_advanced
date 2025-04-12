@@ -11,11 +11,13 @@ if "is_editing" not in st.session_state:
 if "df" not in st.session_state:
     st.session_state.df = bq_to_df()
 
+editor= st.secrets.user_role.editor
+
+editor_user_set = set(email.strip().strip('"') for email in editor.strip('{}').split(','))
+
+
 if "editor_user" not in st.session_state:
-    st.session_state.editor_user = {"franco.dauro@analyticstown.com" , 
-                                    "rocio.ilarri@analyticstown.com",
-                                    "irene.grillo@luxottica.com",
-                                    "diego.quirch@grandvision.com"}
+    st.session_state.editor_user = editor_user_set
 
 icon = Image.open("icon.jpeg")
 
