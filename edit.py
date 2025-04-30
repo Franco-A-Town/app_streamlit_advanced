@@ -55,7 +55,7 @@ def edit():
                 st.rerun()
 
         if confirm_edit:
-            df_to_bq(st.session_state["dfa"])
+            df_to_bq_safe(st.session_state["dfa"])
             update_is_editing(new_value=False , user_email=st.experimental_user.email)
             #st.session_state.is_editing = get_is_editing()
             #st.session_state.df = bq_to_df()
