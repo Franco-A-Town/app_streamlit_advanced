@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import time
-from elements import bq_to_df, df_to_bq, active_dfa, commit, get_is_editing, update_is_editing    
+from elements import bq_to_df, df_to_bq, df_to_bq_safe, active_dfa, commit, get_is_editing, update_is_editing    
 
 
 def edit():
@@ -48,15 +48,17 @@ def edit():
 
         with col2:
             if st.button ("Cancel"):
-                update_is_editing(False)
-                st.session_state.is_editing = get_is_editing()
+                update_is_editing(new_value=False , user_email=st.experimental_user.email)
+                #st.session_state.is_editing = get_is_editing()
+                st.session_state.is_editing = False
+                #st.write("{st.session_state.is_editing}")
                 st.rerun()
 
         if confirm_edit:
             df_to_bq(st.session_state["dfa"])
-            update_is_editing(False)
-            st.session_state.is_editing = get_is_editing()
-            st.session_state.df = bq_to_df()
+            update_is_editing(new_value=False , user_email=st.experimental_user.email)
+            #st.session_state.is_editing = get_is_editing()
+            #st.session_state.df = bq_to_df()
             st.rerun()
     
     else:

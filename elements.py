@@ -304,6 +304,88 @@ def df_to_bq(df: pd.DataFrame):
     except Exception as e:
         st.error(f"Error when uploading data to table: {e}")
 
+
+def df_to_bq_safe(edited_df: pd.DataFrame , table_id:str= f"{project_id}.{dataset_id}.{source_data_table_id}" ):
+    """
+    Actualiza una tabla en BigQuery de manera segura, con backup automático y recuperación ante fallos.
+    
+    Args:
+        table_id (str): ID de la tabla en BigQuery (ejemplo: 'mi_proyecto.mi_dataset.mi_tabla')
+        edited_df (pd.DataFrame): DataFrame con los datos editados en Streamlit
+    """
+    
+    # 1️⃣ Inicializar el cliente de BigQuery
+    client = bigquery.Client()
+    
+    try:
+        # 2️⃣ Crear un nombre único para el backup usando la fecha y hora actual
+        backup_table = f"{table_id}_backup_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}_{st.experimental_user.email}"
+        
+        # 3️⃣ Hacer un backup completo de la tabla original (SELECT * INTO backup_table)
+        st.info("🔄 Creando copia de seguridad...")
+        backup_job = client.query(f"CREATE TABLE `{backup_table}` AS SELECT * FROM `{table_id}`")
+        backup_job.result()  # Esperar a que termine
+        st.success(f"✅ Backup creado: `{backup_table}`")
+        
+        # 4️⃣ Borrar los datos actuales de la tabla (TRUNCATE)
+        st.info("🗑️ Borrando datos antiguos...")
+        client.query(f"TRUNCATE TABLE `{table_id}`").result()
+        st.success("✅ Datos antiguos borrados")
+        
+        # 5️⃣ Editar el DataFrame y subirlo a BigQuery
+        
+        edited_df = edited_df.loc[:, edited_df.columns != "Active"]
+    
+        edited_df = edited_df.rename(
+            columns={
+                "id": "id",
+                "Year": "year",
+                "Week": "week",
+                "Banner": "banner",
+                "Traffic": "traffic",
+                "Transactions": "transactions",
+                "Total revenue": "revenue",
+                "Insights on performance": "insights_on_performance",
+                "Insights on blockers": "insights_on_blockers",
+                "Sun revenues": "sun_revenue",
+                "Sun units": "sun_units",
+                "CL revenues": "cl_revenue",
+                "CL units": "cl_units",
+                "OPT revenues": "opt_revenue",
+                "OPt units": "opt_units",
+                "Return values": "total_return_values",
+                "CL return_values": "cl_return_values",
+                "OPT return values": "opt_return_values",
+                "SUN return values": "sun_return_values",
+                "Appointments": "appointments"
+                }
+        )
+    
+        st.info("⬆️ Subiendo datos nuevos...")
+        upload_job = client.load_table_from_dataframe(edited_df, table_id)
+        upload_job.result()  # Esperar a que termine
+        
+        # 6️⃣ Verificar que el número de registros coincida
+        new_count = client.query(f"SELECT COUNT(*) FROM `{table_id}`").result().to_dataframe().iloc[0, 0]
+        if new_count == len(edited_df):
+            st.success("🎉 ¡Base de datos actualizada con éxito!")
+            # Opcional: Borrar el backup si todo salió bien (descomenta si lo quieres)
+            # client.delete_table(backup_table, not_found_ok=True)
+        else:
+            raise Exception("❌ El número de registros no coincide")
+            
+    except Exception as e:
+        # 7️⃣ SI HAY UN ERROR: Restaurar desde el backup
+        st.error(f"🚨 Error: {e}")
+        st.warning("🔙 Intentando restaurar desde el backup...")
+        
+        # Borrar la tabla actual (por si quedó inconsistente)
+        client.query(f"TRUNCATE TABLE `{table_id}`").result()
+        
+        # Copiar los datos del backup a la tabla original
+        client.query(f"INSERT INTO `{table_id}` SELECT * FROM `{backup_table}`").result()
+        st.success("♻️ ¡Se restauró la versión anterior de los datos!")
+
 def active_dfa():
     return st.session_state["dfa"][st.session_state["dfa"]["Active"] == True].copy()
 
@@ -340,22 +422,52 @@ def get_is_editing():
     except Exception as e:
         return None
 
-def update_is_editing(new_value: bool):
-    # Consulta para actualizar el primer registro
+def get_user_is_editing():
+    query = f"""
+        SELECT user
+        FROM `{is_editing_table_ref}`
+        LIMIT 1
+    """
+
+    try:
+        # Ejecutar la consulta
+        query_job = client.query(query)
+
+        # Esperar el resultado
+        results = query_job.result()
+
+        # Obtener el valor de la primera fila
+        for row in results:
+            return row.user 
+
+    except Exception as e:
+        return None
+
+def update_is_editing(new_value: bool, user_email: str = None):
+    # Consulta SQL para actualizar ambas columnas
+    if user_email is None:
+        user_email = st.experimental_user.email
+    
     query = f"""
     UPDATE `{is_editing_table_ref}`
-    SET is_editing = @new_value
-    WHERE TRUE  -- Esto asegura que se actualice aunque no haya condiciones específicas
+    SET 
+        is_editing = @new_value,
+        user = @user_email
+    WHERE TRUE  -- Actualiza todas las filas
     """
+
     # Configuramos los parámetros de la consulta
     job_config = bigquery.QueryJobConfig(
-        query_parameters=[bigquery.ScalarQueryParameter("new_value", "BOOL", new_value)]
+        query_parameters=[
+            bigquery.ScalarQueryParameter("new_value", "BOOL", new_value),
+            bigquery.ScalarQueryParameter("user_email", "STRING", user_email)
+        ]
     )
-    
+
     try:
         # Ejecutar la consulta
         client.query(query, job_config=job_config).result()
-        print(f"")
+        print("Tabla actualizada correctamente.")
     except Exception as e:
         print(f"Error updating: {e}")
 

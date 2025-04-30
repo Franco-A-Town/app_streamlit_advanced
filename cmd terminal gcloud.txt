@@ -1,0 +1,29 @@
+# 1. Construir la imagen Docker desde el directorio actual (contiene Dockerfile y código)
+docker build -t streamlit-app .
+
+# 2. Autenticarse en Google Cloud y configurar proyecto
+gcloud auth login
+gcloud config set project circular-cubist-455115-m2
+
+# 3. Crear repositorio en Artifact Registry (solo primera vez)
+gcloud artifacts repositories create streamlit-repo --repository-format=docker --location=us-central1
+
+# 4. Subir la imagen al repositorio
+docker tag streamlit-app us-central1-docker.pkg.dev/circular-cubist-455115-m2/streamlit-repo/streamlit-app:latest
+
+gcloud auth configure-docker us-central1-docker.pkg.dev  # Autenticar Docker
+
+docker push us-central1-docker.pkg.dev/circular-cubist-455115-m2/streamlit-repo/streamlit-app:latest
+
+# 5. Desplegar en Cloud Run (servicio público)
+gcloud run deploy streamlit-app --image us-central1-docker.pkg.dev/circular-cubist-455115-m2/streamlit-repo/streamlit-app:latest --platform managed --region us-central1 --allow-unauthenticated --port 8501
+
+# --- Comandos útiles posteriores ---
+# Obtener URL de la app desplegada:
+gcloud run services describe streamlit-app --region us-central1 --format "value(status.url)"
+
+# Ver logs de ejecución:
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=streamlit-app" --limit 20
+
+# Eliminar servicio (si ya no se necesita):
+# gcloud run services delete streamlit-app --region us-central1
