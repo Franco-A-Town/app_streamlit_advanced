@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import time
 from elements import banners, default_form_values, create_register, bq_to_df, filter_df, get_is_editing
 
 if "df" not in st.session_state:
