@@ -44,21 +44,21 @@ def edit():
         col1, col2,col3 = st.columns([1,1,4])
 
         with col1:
-            confirm_edit= st.button ("Upload")
+            confirm_edit= st.button ("⬆️ Upload")
 
         with col2:
-            if st.button ("Cancel"):
+            if st.button ("❌ Cancel"):
                 update_is_editing(new_value=False , user_email=st.experimental_user.email)
-                #st.session_state.is_editing = get_is_editing()
                 st.session_state.is_editing = False
+                st.session_state.is_editing = get_is_editing()
                 #st.write("{st.session_state.is_editing}")
                 st.rerun()
 
         if confirm_edit:
             df_to_bq_safe(st.session_state["dfa"])
             update_is_editing(new_value=False , user_email=st.experimental_user.email)
-            #st.session_state.is_editing = get_is_editing()
-            #st.session_state.df = bq_to_df()
+            st.session_state.is_editing = get_is_editing()
+            st.session_state.df = bq_to_df()
             st.rerun()
     
     else:

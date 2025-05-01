@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-from elements import banners, create_register, bq_to_df, filter_df, get_is_editing, default_form_values
-import time
+from elements import banners, default_form_values, create_register, bq_to_df, filter_df, get_is_editing
 
 if "df" not in st.session_state:
     st.session_state.df = bq_to_df()
@@ -77,7 +76,7 @@ def input():
                 insights_on_blockers = st.text_area("Insights on blockers",
                                                     value=st.session_state.form_data['insights_on_blockers'])
 
-            submitted = st.form_submit_button("Upload to BQ")
+            submitted = st.form_submit_button("⬆️ Upload to BQ")
 
             if submitted:
                 st.session_state.is_editing = get_is_editing()
@@ -203,7 +202,7 @@ def input():
             if 'All banners' in banner:
                 banner = banners
 
-        filter = st.form_submit_button(label="Filter")
+        filter = st.form_submit_button(label="🔍 Filter")
         if filter:
             df_filtered = filter_df(df= st.session_state.df, filter_year=year, filter_week=week, filter_banner=banner)
             st.session_state.is_df_filtered = True

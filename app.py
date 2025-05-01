@@ -44,7 +44,7 @@ else:
         else:
             st.info("Role: Data entry")
 
-        if st.button("Logout"):
+        if st.button("👋 Logout"):
            st.session_state.is_logged_in = False
            st.logout()
 
@@ -57,7 +57,7 @@ else:
                 input()
             else:
                 st.warning(f"**Upload** of new registers **Disabled**. The data are being edited by {get_user_is_editing()}. " \
-                "Please refresh the app and try uploading again later. " \)
+                "Please refresh the app and try uploading again later. ")
                 input()
                 #time.sleep(3)
                 #st.rerun()
@@ -69,7 +69,7 @@ else:
                     st.warning("Press the button below to edit the data. " \
                     "The upload of **new registers** will be **disabled** during the edition process")
 
-                    if st.button("Edit Data"):
+                    if st.button("✏️ Edit Data"):
                         update_is_editing(True, user_email=st.experimental_user.email)
                         st.session_state.is_editing = get_is_editing()
                         st.rerun()
