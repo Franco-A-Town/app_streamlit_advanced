@@ -319,11 +319,13 @@ def df_to_bq_safe(edited_df: pd.DataFrame, table_id: str = source_data_table_ref
         
         # 2- Create a clean backup name starting with "backup_"
         clean_email = st.experimental_user.email.split('@')[0].replace('.', '_').replace('-', '_')
-        timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+        
+        # Usar hora UTC en formato ISO 8601 para consistencia global
+        timestamp = pd.Timestamp.now(tz='UTC').strftime('%Y-%m-%dT%H-%M-%SZ')  # Usamos guiones en lugar de : para compatibilidad con nombres de tabla
         
         backup_table_name = (
             f"{project_id}.{dataset_id}.backup_{table_name}_"
-            f"{timestamp}_{clean_email}"
+            f"{clean_email}_{timestamp}"
         )
         
         # 3- Create complete backup of original table
@@ -403,7 +405,6 @@ def df_to_bq_safe(edited_df: pd.DataFrame, table_id: str = source_data_table_ref
         except Exception as restore_error:
             st.error(f"🔥 CRITICAL: Restoration failed - {str(restore_error)}")
             st.error(f"Manual intervention required. Backup exists at: {backup_table_name}")
-
 
 def active_dfa():
     return st.session_state["dfa"][st.session_state["dfa"]["Active"] == True].copy()
