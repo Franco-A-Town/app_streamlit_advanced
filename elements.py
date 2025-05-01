@@ -492,9 +492,6 @@ def update_is_editing(new_value: bool, user_email: str = None):
         print(f"Error updating: {e}")
 
 '''
-# Create the table in BigQuery
-# This code is only needed once to create the table
-
 CREATE OR REPLACE TABLE `circular-cubist-455115-m2.app_source_data.app_source_data` (
   id STRING,
   year INT64,
@@ -516,5 +513,12 @@ CREATE OR REPLACE TABLE `circular-cubist-455115-m2.app_source_data.app_source_da
   opt_return_values FLOAT64,
   sun_return_values FLOAT64,
   appointments INT64
+);
+'''
+
+'''
+CREATE OR REPLACE TABLE `circular-cubist-455115-m2.app_source_data.is_editing` (
+  is_editing BOOL,
+  user STRING
 );
 '''

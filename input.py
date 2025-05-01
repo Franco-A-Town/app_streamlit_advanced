@@ -41,32 +41,42 @@ def input():
                                                value=st.session_state.form_data['transactions'])
                 appointments = st.number_input("Appointments", min_value=0, 
                                                value=st.session_state.form_data['appointments'])
-                total_revenue = st.number_input("Total revenues", min_value=0.0,
-                                                value=st.session_state.form_data['revenue'])
-                total_return_values = st.number_input("Total return value", min_value=0.0,
-                                                      value=st.session_state.form_data['total_return_values'])
+                total_revenue = st.number_input(
+                    "Total revenues",
+                    min_value=None,  
+                    value=st.session_state.form_data.get('revenue', 0.00),
+                    format="%.2f"  )
+                total_return_values = st.number_input("Total return value", min_value=None,
+                                                      value=st.session_state.form_data['total_return_values'],
+                                                      format="%.2f")
 
             with col_3:
-                cl_revenues = st.number_input("Contact lenses revenues", min_value=0.0,
-                                              value=st.session_state.form_data['cl_revenue'])
-                cl_return_values = st.number_input("Contact lenses return values", min_value=0.0,
-                                                   value=st.session_state.form_data['cl_return_values'])
+                cl_revenues = st.number_input("Contact lenses revenues", min_value=None,
+                                              value=st.session_state.form_data['cl_revenue'],
+                                              format="%.2f")
+                cl_return_values = st.number_input("Contact lenses return values", min_value=None,
+                                                   value=st.session_state.form_data['cl_return_values'],
+                                                   format="%.2f")
                 cl_units = st.number_input("Contact lenses units", min_value=0,
                                            value=st.session_state.form_data['cl_units'])
 
             with col_4:
-                opt_revenues = st.number_input("Optical revenues", min_value=0.0,
-                                               value=st.session_state.form_data['opt_revenue'])
-                opt_return_values = st.number_input("Optical return values", min_value=0.0,
-                                                    value=st.session_state.form_data['opt_return_values'])
+                opt_revenues = st.number_input("Optical revenues", min_value=None,
+                                               value=st.session_state.form_data['opt_revenue'],
+                                               format="%.2f")
+                opt_return_values = st.number_input("Optical return values", min_value=None,
+                                                    value=st.session_state.form_data['opt_return_values'],
+                                                    format="%.2f")
                 opt_units = st.number_input("Optical units", min_value=0,
                                             value=st.session_state.form_data['opt_units'])
 
             with col_5:
-                sun_revenues = st.number_input("Sun glasses revenues", min_value=0.0,
-                                               value=st.session_state.form_data['sun_revenue'])
-                sun_return_values = st.number_input("Sun glasses return values", min_value=0.0,
-                                                    value=st.session_state.form_data['sun_return_values'])
+                sun_revenues = st.number_input("Sun glasses revenues", min_value=None,
+                                               value=st.session_state.form_data['sun_revenue'],
+                                               format="%.2f")
+                sun_return_values = st.number_input("Sun glasses return values", min_value=None,
+                                                    value=st.session_state.form_data['sun_return_values'],
+                                                    format="%.2f")
                 sun_units = st.number_input("Sun glasses units", min_value=0,
                                             value=st.session_state.form_data['sun_units'])
 

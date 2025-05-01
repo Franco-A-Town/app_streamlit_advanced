@@ -32,8 +32,8 @@ st.set_page_config(
 st.title("Source Data App")
 
 if not st.experimental_user.is_logged_in:
-    st.subheader("Please log-in to continue")
-    if st.button("Log In"):
+    st.subheader("Please login to continue")
+    if st.button("🔑 Login"):
         st.login("google")
 
 else:
