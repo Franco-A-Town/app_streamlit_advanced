@@ -3,13 +3,16 @@ import pandas as pd
 import time
 from elements import bq_to_df, df_to_bq, df_to_bq_safe, active_dfa, commit, get_is_editing, update_is_editing    
 
+#if 'dfa' not in st.session_state:
+#    st.session_state.dfa = bq_to_df()
+#
+#st.session_state.dfa = bq_to_df()
 
 def edit():
 
     if st.experimental_user.email in st.session_state.editor_user:
 
-        #if "dfa" not in st.session_state:
-        st.session_state.dfa = bq_to_df()
+
 
         st.subheader("Filter and edit data")
 
