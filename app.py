@@ -79,7 +79,6 @@ else:
                         if 'dfa' not in st.session_state:
                             st.session_state.dfa = bq_to_df()
                         
-                        st.session_state.dfa = bq_to_df()
                         edit()
                     else:
                         st.error(f"Editing has already been activated by user {get_user_is_editing()}. ")

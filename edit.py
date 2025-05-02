@@ -12,8 +12,6 @@ def edit():
 
     if st.experimental_user.email in st.session_state.editor_user:
 
-
-
         st.subheader("Filter and edit data")
 
         # Crear campos de entrada para filtrar por Banner, Week y Year
@@ -44,6 +42,8 @@ def edit():
             on_change=commit  # Llamar a la función commit al realizar cambios
         )
 
+        #st.write(active_dfa())
+
         col1, col2,col3 = st.columns([1,1,4])
 
         with col1:
@@ -54,6 +54,8 @@ def edit():
                 update_is_editing(new_value=False , user_email=st.experimental_user.email)
                 st.session_state.is_editing = False
                 st.session_state.is_editing = get_is_editing()
+                if 'dfa' in st.session_state:
+                    del st.session_state["dfa"]
                 #st.write("{st.session_state.is_editing}")
                 st.rerun()
 
@@ -62,6 +64,8 @@ def edit():
             update_is_editing(new_value=False , user_email=st.experimental_user.email)
             st.session_state.is_editing = get_is_editing()
             st.session_state.df = bq_to_df()
+            if 'dfa' in st.session_state:
+                del st.session_state["dfa"]
             st.rerun()
     
     else:

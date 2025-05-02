@@ -308,11 +308,14 @@ def df_to_bq(df: pd.DataFrame):
 
 
 def df_to_bq_safe(edited_df: pd.DataFrame, table_id: str = 'circular-cubist-455115-m2.app_source_data.app_source_data'):
+    
     """
     Safely updates main table with proper column name standardization
     and creates consistent backups in the partitioned table.
     Handles schema mismatches automatically.
     """
+
+    #st.write(edited_df)
     try:
         # 1- Extract table information
         project_id, dataset_id, table_name = table_id.split('.')
@@ -342,6 +345,8 @@ def df_to_bq_safe(edited_df: pd.DataFrame, table_id: str = 'circular-cubist-4551
         
         # Create processed DataFrame
         processed_df = edited_df.rename(columns=column_mapping)
+
+        #st.write(processed_df)
         
         # 3- Remove any columns not in the target tables
         # Get schema for both tables
@@ -363,6 +368,7 @@ def df_to_bq_safe(edited_df: pd.DataFrame, table_id: str = 'circular-cubist-4551
         backup_df['backup_timestamp'] = backup_timestamp
         
         st.info("🔄 Creating backup in partitioned table...")
+        #st.write(backup_df)
         client.load_table_from_dataframe(
             backup_df,
             backup_table_ref,
