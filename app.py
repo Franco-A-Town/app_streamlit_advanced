@@ -71,6 +71,7 @@ else:
 
                     if st.button("✏️ Edit Data"):
                         update_is_editing(True, user_email=st.experimental_user.email)
+                        #st.session_state.df = bq_to_df()
                         st.session_state.is_editing = get_is_editing()
                         st.rerun()
                 else:

@@ -8,8 +8,8 @@ def edit():
 
     if st.experimental_user.email in st.session_state.editor_user:
 
-        if "dfa" not in st.session_state:
-            st.session_state["dfa"] = bq_to_df()
+        #if "dfa" not in st.session_state:
+        st.session_state.dfa = bq_to_df()
 
         st.subheader("Filter and edit data")
 
