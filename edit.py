@@ -12,7 +12,7 @@ def edit():
 
     if st.experimental_user.email in st.session_state.editor_user:
 
-        st.subheader("Filter and edit data")
+        st.subheader("Filter and edit data", anchor= False)
 
         # Crear campos de entrada para filtrar por Banner, Week y Year
         col_1, col_2, col_3 = st.columns(3)
