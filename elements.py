@@ -429,7 +429,7 @@ def df_to_bq_safe(edited_df: pd.DataFrame, table_id: str = 'circular-cubist-4551
             st.error("Manual intervention required. Check the backups_master table.")
 
 def active_dfa():
-    return st.session_state["dfa"][st.session_state["dfa"]["Active"] == True]#.copy()
+    return st.session_state["dfa"][st.session_state["dfa"]["Active"] == True].copy()
 
 
 def get_index(row):
