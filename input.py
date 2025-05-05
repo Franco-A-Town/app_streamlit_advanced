@@ -21,7 +21,7 @@ def input():
 
     # Formulario principal
     if st.session_state.show_confirmation== False and st.session_state.is_editing== False:
-        st.subheader("Create and upload new performance data registers")
+        st.subheader("Create and upload new performance data registers", anchor= False)
         with st.form("create", clear_on_submit=st.session_state.clear_on_submit, enter_to_submit=False):
             col_1, col_2, col_3, col_4, col_5, col_6 = st.columns([2,2,2,2,2,3])
 
@@ -128,7 +128,7 @@ def input():
     if st.session_state.show_confirmation and st.session_state.form_data:
         confirm_container = st.container()
         with confirm_container:
-            st.subheader("Please check the data entered before upload")
+            st.subheader("Please check the data entered before upload", anchor= False)
             # Mostrar los datos ingresados
             col_1, col_2, col_3 = st.columns([1,1,2])
             with col_1:

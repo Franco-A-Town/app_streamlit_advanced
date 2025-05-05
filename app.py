@@ -29,10 +29,10 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.title("Source Data App")
+st.title("Source Data App", anchor= False)
 
 if not st.experimental_user.is_logged_in:
-    st.subheader("Please login to continue")
+    st.subheader("Please login to continue", anchor= False)
     if st.button("🔑 Login"):
         st.login("google")
 
@@ -41,16 +41,19 @@ else:
         email.lower() for email in entry_user_set | editor_user_set
         ):
         
-        st.subheader(f"Welcome {st.experimental_user.email}")
+        st.subheader(f"Welcome {st.experimental_user.email}" , anchor= False)
         
         if st.experimental_user.email in st.session_state.editor_user:
             st.info("Role: Editor")
         else:
             st.info("Role: Data entry")
-
-        if st.button("👋 Logout"):
-           st.session_state.is_logged_in = False
-           st.logout()
+        
+        col_1, col_2 = st.columns([6,1])
+        
+        with col_2:
+            if st.button("👋 Logout", use_container_width=True):
+               st.session_state.is_logged_in = False
+               st.logout()
 
         st.sidebar.title("Menu")
         menu = st.sidebar.radio("Select an option", ("Input", "Edit"))

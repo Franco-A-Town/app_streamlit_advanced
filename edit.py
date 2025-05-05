@@ -39,7 +39,7 @@ def edit():
         edited_dfa = st.data_editor(
             active_dfa(),  # Mostrar solo las filas activas
             key="editor",
-            on_change=commit  # Llamar a la función commit al realizar cambios
+            on_change= commit,  
         )
 
         #st.write(active_dfa())
@@ -60,6 +60,7 @@ def edit():
                 st.rerun()
 
         if confirm_edit:
+            #commit()
             df_to_bq_safe(st.session_state["dfa"])
             update_is_editing(new_value=False , user_email=st.experimental_user.email)
             st.session_state.is_editing = get_is_editing()
