@@ -37,8 +37,12 @@ if not st.experimental_user.is_logged_in:
         st.login("google")
 
 else:
-    if st.experimental_user.email in (entry_user_set|editor_user_set):
+    if st.experimental_user.email and st.experimental_user.email.lower() in (
+        email.lower() for email in entry_user_set | editor_user_set
+        ):
+        
         st.subheader(f"Welcome {st.experimental_user.email}")
+        
         if st.experimental_user.email in st.session_state.editor_user:
             st.info("Role: Editor")
         else:
