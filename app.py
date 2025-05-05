@@ -85,7 +85,7 @@ else:
                 st.error("**Editor role** is needed. Please contact the administrator.")
 
     else:
-        st.error("Your user email does not have permission to access this app. " \
+        st.error(f"Hi {st.experimental_user.email}. Your user email does not have permission to access this app. " \
         "Please contact the administrator.")
         st.session_state.is_logged_in = False
         time.sleep(7)
