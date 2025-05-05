@@ -66,8 +66,7 @@ else:
             if st.experimental_user.email in st.session_state.editor_user:
                 st.session_state.is_editing = get_is_editing()
                 if st.session_state.is_editing==False:
-                    st.warning("Press the button below to edit the data. " \
-                    "The upload of **new registers** will be **disabled** during the edition process")
+                    st.warning("Click below to edit. Other users won't be able to add records or modify data until you're done.")
 
                     if st.button("✏️ Edit Data"):
                         update_is_editing(True, user_email=st.experimental_user.email)
