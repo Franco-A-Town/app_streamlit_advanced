@@ -1,12 +1,15 @@
 import streamlit as st
 import pandas as pd
 import time
-from elements import bq_to_df, df_to_bq, df_to_bq_safe, active_dfa, commit, get_is_editing, update_is_editing    
+from elements import column_config, bq_to_df, df_to_bq, df_to_bq_safe, active_dfa, commit, get_is_editing, update_is_editing    
 
 #if 'dfa' not in st.session_state:
 #    st.session_state.dfa = bq_to_df()
 #
 #st.session_state.dfa = bq_to_df()
+
+if 'pin_col' not in st.session_state:
+    st.session_state.pin_col = []
 
 def edit():
 
@@ -23,6 +26,11 @@ def edit():
         with col_3:    
             year = st.number_input("Search for Year", min_value=2023, max_value=2025, step=1, value=2025)
 
+        st.session_state.pin_col = st.multiselect("Pin columns from left to right", 
+                                                  options=st.session_state.dfa.columns.tolist()[4:20], 
+                                                  default=st.session_state.dfa.columns.tolist()[4:20])
+
+
         # Aplicar filtros al DataFrame
         st.session_state["dfa"]["Active"] = False  # Desactivar todas las filas inicialmente
 
@@ -38,8 +46,11 @@ def edit():
         # Mostrar el editor de datos para las filas activas
         edited_dfa = st.data_editor(
             active_dfa(),  # Mostrar solo las filas activas
+            column_order= st.session_state.dfa.columns.tolist()[0:4] + st.session_state.pin_col,
             key="editor",
-            on_change= commit,  
+            on_change= commit,
+            #num_rows= "dynamic",
+            column_config= column_config,  
         )
 
         #st.write(active_dfa())

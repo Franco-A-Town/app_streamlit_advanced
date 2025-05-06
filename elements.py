@@ -1,6 +1,8 @@
-import streamlit
 import pandas as pd
 import re
+from google.cloud import bigquery
+from google.oauth2 import service_account  # Importamos service_account para usar credenciales directamente
+import streamlit as st
 
 banners= [
     'All banners',
@@ -97,10 +99,32 @@ default_form_values = {
                         'appointments': 0
                     }
 
+column_config = {
+    "id": st.column_config.TextColumn("id"),  # Columna no editable
+    "Year": st.column_config.NumberColumn("Year", format="%d", min_value=2023, max_value=2025),
+    "Week": st.column_config.NumberColumn("Week", format="%d", min_value=1, max_value=52),
+    "Banner": st.column_config.SelectboxColumn("Banner", options=banners, default=banners[1]),
+    "Traffic": st.column_config.NumberColumn("Traffic", format="%d"),
+    "Transactions": st.column_config.NumberColumn("Transactions", format="%d"),
+    "Appointments": st.column_config.NumberColumn("Appointments", format="%d"),
+    "Total revenue": st.column_config.NumberColumn("Total Revenue", format="%.2f"),
+    "Return values": st.column_config.NumberColumn("Return Values", format="%.2f"),
+    "CL revenues": st.column_config.NumberColumn("CL Revenues", format="%.2f"),
+    "CL return_values": st.column_config.NumberColumn("CL Return Values", format="%.2f"),
+    "CL units": st.column_config.NumberColumn("CL Units", format="%d"),
+    "OPT revenues": st.column_config.NumberColumn("OPT Revenues", format="%.2f"),
+    "OPT return values": st.column_config.NumberColumn("OPT Return Values", format="%.2f"),
+    "OPT units": st.column_config.NumberColumn("OPT Units", format="%d"),
+    "Sun revenues": st.column_config.NumberColumn("SUN Revenues", format="%.2f"),
+    "Sun return values": st.column_config.NumberColumn("SUN Return Values", format="%.2f"),
+    "Sun units": st.column_config.NumberColumn("SUN Units", format="%d"),
+    "Insights on performance": st.column_config.TextColumn("Performance Insights"),
+    "Insights on blockers": st.column_config.TextColumn("Blockers Insights")
+}
 
-from google.cloud import bigquery
-from google.oauth2 import service_account  # Importamos service_account para usar credenciales directamente
-import streamlit as st
+
+
+
 
 ## Crear credenciales directamente desde el diccionario
 credentials = service_account.Credentials.from_service_account_info(
