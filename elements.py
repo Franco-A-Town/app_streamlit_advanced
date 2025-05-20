@@ -1,5 +1,6 @@
 import pandas as pd
-import re
+from datetime import datetime, timezone
+import time
 from google.cloud import bigquery
 from google.oauth2 import service_account  # Importamos service_account para usar credenciales directamente
 import streamlit as st
@@ -164,8 +165,10 @@ def create_register(
         appointments=None
 ):
     
-    id = f"{banner.replace(' ','')}-{year}-{week}"
+    #id = f"{banner.replace(' ','')}-{year}-{week}"
 
+    id = f"{st.experimental_user.email}.utc.{datetime.now(timezone.utc).isoformat()}"
+    
     rows_to_insert = [
         {
             "year": year,
@@ -190,20 +193,27 @@ def create_register(
             "id": id
         }
     ]
+
     df = bq_to_df()
 
-    previous_ids = df['id']
+    previous_year_banner_week = set(df["Year"].astype(str) + 
+                                    df["Banner"].astype(str) + 
+                                    df["Week"].astype(str))
 
-    previous_ids = set(previous_ids)
+    current_year_banner_week = str ( str(year) + str(banner) + str(week) )
 
-    if id not in previous_ids:
+    if current_year_banner_week not in previous_year_banner_week:
         errors = client.insert_rows_json(source_data_table_ref, rows_to_insert)
         if errors:
             st.error("Error trying to insert register:", errors)
         else:
             st.success("New register uploaded to Big Query succesfully")
     else:
-        st.error("The register for the Banner, Year and Week entered already exists")
+        st.error(f"The register for the Banner '**{banner}**' , Year '**{year}**' and Week '**{week}**' entered already exists")
+        time.sleep(3)
+        st.session_state.show_confirmation = False
+        st.session_state.clear_on_submit = False
+        st.rerun()
 
 
 def bq_to_df():
@@ -452,20 +462,6 @@ def df_to_bq_safe(edited_df: pd.DataFrame, table_id: str = 'circular-cubist-4551
             st.error(f"🔥 CRITICAL: Restoration failed - {str(restore_error)}")
             st.error("Manual intervention required. Check the backups_master table.")
 
-def active_dfa():
-    return st.session_state["dfa"][st.session_state["dfa"]["Active"] == True].copy()
-
-
-def get_index(row):
-    return active_dfa().iloc[row].name
-
-
-def commit():
-    for row in st.session_state.editor["edited_rows"]:
-        row_index = get_index(row)
-        for key, value in st.session_state.editor["edited_rows"][row].items():
-            st.session_state["dfa"].at[row_index, key] = value
-
 
 def get_is_editing():
     query = f"""
@@ -536,6 +532,23 @@ def update_is_editing(new_value: bool, user_email: str = None):
         print("Tabla actualizada correctamente.")
     except Exception as e:
         print(f"Error updating: {e}")
+
+
+def active_dfa():
+    return st.session_state["dfa"][st.session_state["dfa"]["Active"] == True].copy()
+
+
+def get_index(row):
+    return active_dfa().iloc[row].name
+
+
+def commit():
+    for row in st.session_state.editor["edited_rows"]:
+        row_index = get_index(row)
+        for key, value in st.session_state.editor["edited_rows"][row].items():
+            st.session_state["dfa"].at[row_index, key] = value
+            st.session_state["dfa"].at[row_index, "id"] = f"{st.experimental_user.email}.utc.{datetime.now(timezone.utc).isoformat()}"
+
 
 '''
 CREATE OR REPLACE TABLE `circular-cubist-455115-m2.app_source_data.app_source_data` (
