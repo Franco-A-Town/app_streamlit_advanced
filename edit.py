@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import time
 from elements import column_config, bq_to_df, df_to_bq, df_to_bq_safe, active_dfa, commit, get_is_editing, update_is_editing    
+from collections import Counter
 
 #if 'dfa' not in st.session_state:
 #    st.session_state.dfa = bq_to_df()
@@ -24,7 +25,7 @@ def edit():
         with col_2:    
             week = st.slider("Search for Week range", min_value=1, max_value=52, value=(1, 52))
         with col_3:    
-            year = st.number_input("Search for Year", min_value=2023, max_value=2025, step=1, value=2025)
+            year = st.multiselect("Search for Year", options= [2023,2024,2025], default=[2025])
 
         st.session_state.pin_col = st.multiselect("Pin columns from left to right", 
                                                   options=st.session_state.dfa.columns.tolist()[4:20], 
@@ -39,7 +40,7 @@ def edit():
             (st.session_state["dfa"]["Banner"].str.contains(banner_name, case=False, na=False)) &
             (st.session_state["dfa"]["Week"] >= week[0]) &
             (st.session_state["dfa"]["Week"] <= week[1]) &
-            (st.session_state["dfa"]["Year"] == year),
+            (st.session_state["dfa"]["Year"].isin(year)),
             "Active"
         ] = True
 
@@ -50,7 +51,7 @@ def edit():
             key="editor",
             on_change= commit,
             #num_rows= "dynamic",
-            column_config= column_config,  
+            column_config= column_config
         )
 
         #st.write(active_dfa())
@@ -72,13 +73,39 @@ def edit():
 
         if confirm_edit:
             #commit()
-            df_to_bq_safe(st.session_state["dfa"])
-            update_is_editing(new_value=False , user_email=st.experimental_user.email)
-            st.session_state.is_editing = get_is_editing()
-            st.session_state.df = bq_to_df()
-            if 'dfa' in st.session_state:
-                del st.session_state["dfa"]
-            st.rerun()
+
+            combined_year_banner_week = (
+                '**Year**: ' +
+                st.session_state["dfa"]["Year"].astype(str) +
+                '   ' +
+                '**Banner**: ' + 
+                st.session_state["dfa"]["Banner"].astype(str) +
+                '   ' + 
+                '**Week**: ' +
+                st.session_state["dfa"]["Week"].astype(str)
+            ).tolist()
+
+            value_counts = Counter(combined_year_banner_week)
+            duplicates = {k: v for k, v in value_counts.items() if v > 1}
+
+            if duplicates:
+                st.error(f"**ERROR**: {len(duplicates)} registers with repeated combination of Year, Banner and Week.")
+                # Opcional: Mostrar algunos ejemplos
+                for val, count in duplicates.items():
+                    st.error(f"Repeated entry (×{count}):")
+                    st.code(val)  # Preserves all whitespace
+                st.error("Please check the data and try again.")
+                time.sleep(10)
+                st.rerun()
+            
+            else:            
+                df_to_bq_safe(st.session_state["dfa"])
+                update_is_editing(new_value=False , user_email=st.experimental_user.email)
+                st.session_state.is_editing = get_is_editing()
+                st.session_state.df = bq_to_df()
+                if 'dfa' in st.session_state:
+                    del st.session_state["dfa"]
+                st.rerun()
     
     else:
         st.warning("Editor role is needed. Please contact the administrator.")

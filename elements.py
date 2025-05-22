@@ -101,7 +101,7 @@ default_form_values = {
                     }
 
 column_config = {
-    "id": st.column_config.TextColumn("id"),  # Columna no editable
+    "id": st.column_config.Column(disabled=True),  # Columna no editable
     "Year": st.column_config.NumberColumn("Year", format="%d", min_value=2023, max_value=2025),
     "Week": st.column_config.NumberColumn("Week", format="%d", min_value=1, max_value=52),
     "Banner": st.column_config.SelectboxColumn("Banner", options=banners, default=banners[1]),
